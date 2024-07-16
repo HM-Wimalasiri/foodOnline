@@ -41,7 +41,7 @@ INSTALLED_APPS = [
     'accounts',
 ]
 
-AUTH_USER_MODEL='accounts.user'
+AUTH_USER_MODEL='accounts.User'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -85,6 +85,9 @@ DATABASES = {
         'PASSWORD': config('DB_PASSWORD'),
         'HOST':config('DB_HOST'),
         'PORT':config('DB_PORT'),
+          'OPTIONS': {
+            'sql_mode': 'traditional',
+        }
     }
 }
 

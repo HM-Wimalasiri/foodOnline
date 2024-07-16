@@ -61,7 +61,7 @@ class User(AbstractBaseUser):
     is_superadmin=models.BooleanField(default=False)
 
     USERNAME_FIELD="email"
-    REQUIRED_FIELDS=['username','first_name']
+    REQUIRED_FIELDS=['username','first_name','last_name']
 
     objects=UserManager()
 
@@ -71,5 +71,5 @@ class User(AbstractBaseUser):
     def has_perm(self, perm, obj=None):
         return self.is_admin
     
-    def has_module_perm(self, app_label):
+    def has_module_perms(self, app_label):
         return True
