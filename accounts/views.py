@@ -1,12 +1,17 @@
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
-from django.contrib import messages
+from django.contrib import messages, auth
 from accounts.forms import UserForm
 from accounts.models import User, UserProfile
+from accounts.utils import detectUser
 from vendor.froms import VendorForm
+from django.contrib.auth.decorators import login_required
 
 def registerUser(request):
-    if request.method=="POST":
+    if request.user.is_authenticated:
+        messages.warning(request, "You are already logged in.")
+        return redirect('myAccount')
+    elif request.method=="POST":
         form=UserForm(request.POST)
         if form.is_valid():
             # password=form.cleaned_data['password']
@@ -38,7 +43,10 @@ def registerUser(request):
 
 
 def registerVendor(request):
-    if request.method=="POST":
+    if request.user.is_authenticated:
+        messages.warning(request, "You are already logged in.")
+        return redirect('myAccount')
+    elif request.method=="POST":
         form=UserForm(request.POST)
         v_form=VendorForm(request.POST, request.FILES)
         if form.is_valid() and v_form.is_valid():
@@ -68,4 +76,42 @@ def registerVendor(request):
         'form':form,
         'v_form':v_form,
     }
-    return render(request, 'accounts/registerVendor.html', context) 
+    return render(request, 'accounts/registerVendor.html', context)
+
+def login(request):
+    if request.user.is_authenticated:
+        messages.warning(request, "You are already logged in.")
+        return redirect('myAccount')
+    elif request.method=='POST':
+        email=request.POST['email']
+        password=request.POST['password']
+        
+        user=auth.authenticate(email=email, password=password)
+        if user is not None:
+            auth.login(request, user)
+            messages.success(request, "You are now logged in.")
+            return redirect('myAccount')
+        else:
+            messages.error(request, "Invalid login credentials.")
+            return redirect('login')
+           
+    return render(request, 'accounts/login.html')
+
+def logout(request):
+    auth.logout(request)
+    messages.info(request, "You are logged out.")
+    return redirect('login')
+
+@login_required(login_url="login")
+def myAccount(request):
+    user=request.user
+    redirectUrl=detectUser(user)
+    return redirect(redirectUrl)
+
+@login_required(login_url="login")
+def custdashboard(request):
+    return render(request, 'accounts/custDashboard.html')
+
+@login_required(login_url="login")
+def vendordashboard(request):
+    return render(request, 'accounts/vendorDashboard.html')
