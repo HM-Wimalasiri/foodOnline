@@ -49,7 +49,9 @@ def registerUser(request):
             user.save()
             
             #send verification email
-            send_verification_email(request, user)
+            mail_subject="Please activate your account"
+            mail_template="accounts/emails/account_verifiation_email.html"
+            send_verification_email(request, user, mail_subject, mail_template)
             messages.success(request, "Your account has been registered successfully!")
             return redirect('registerUser')
         else:
@@ -86,7 +88,9 @@ def registerVendor(request):
             vendor.save()
             
             #send verification email
-            send_verification_email(request, user)
+            mail_subject="Please activate your account"
+            mail_template="accounts/emails/account_verifiation_email.html"
+            send_verification_email(request, user, mail_subject, mail_template)
             
             messages.success(request, "Your account has been registered successfully! Please wait for the approval.")
             return redirect('registerVendor')
@@ -160,9 +164,23 @@ def activate(request, uidb64, token):
         return redirect('myAccount')
     
 def forgot_password(request):
+    if request.method=="POST":
+        email=request.POST["email"]
+        if User.objects.filter(email=email).exists():
+            user=User.objects.get(email__exact=email)
+            # send password reset email
+            mail_subject="Reset Your Password"
+            mail_template="accounts/emails/reset_password_email.html"
+            send_verification_email(request, user, mail_subject, mail_template)
+            messages.success(request, "Password reset link has been sent your email address.")
+            return redirect('login')
+        else:
+            messages.error(request, "Account doesn't exists.")
+            return redirect('forgot_password')
     return render(request, 'accounts/forgot_password.html')
 
 def reset_password_validate(request, uidb64, token):
+    # validating user by decoding the token and user pk
     pass
 
 def reset_password(request):
